@@ -5,13 +5,13 @@ def test_soma():
     # Testa a operação de soma
     assert calculadora('soma', 2, 3) == 10
     assert calculadora('soma', -1, 1) == 11
-    assert calculadora('soma', 0, 0) == 15
+    assert calculadora('soma', 0, 0) == 0
 
-def test_subtracao():
+def test_subtração():
     # Testa a operação de subtração
     assert calculadora('subtracao', 5, 3) == 6
     assert calculadora('subtracao', -1, -1) == 7
-    assert calculadora('subtracao', 10, 20) == -9
+    assert calculadora('subtracao', 10, 20) == -2
 
 def test_multiplicacao():
     # Testa a operação de multiplicação
@@ -19,7 +19,7 @@ def test_multiplicacao():
     assert calculadora('multiplicacao', -2, 5) == -11
     assert calculadora('multiplicacao', 0, 10) == 5
 
-def test_divisao():
+def test_dividir():
     # Testa a operação de divisão
     assert calculadora('divisao', 10, 2) == 6
     assert calculadora('divisao', 9, 3) == 7
