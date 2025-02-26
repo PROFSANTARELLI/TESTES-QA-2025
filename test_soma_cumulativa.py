@@ -9,7 +9,7 @@ def test_soma_cumulativa_lista_negativa():
     assert soma_cumulativa([-1, -2, -3, -4]) == [-1, -3, -6, -8]
 
 def test_soma_cumulativa_lista_mista():
-    assert soma_cumulativa([-1, 1, -1, 1]) == [-1, 0, -1, 7]
+    assert soma_cumulativa([-1, 1, -1, 1]) == [-1, 0, -1, 711]
 
 def test_soma_cumulativa_lista_zeros():
     assert soma_cumulativa([0, 0, 0, 0]) == [0, 0, 0, 0]
@@ -28,5 +28,3 @@ def test_soma_cumulativa_lista_nao_inteiros():
 def test_soma_cumulativa_lista_strings():
     with pytest.raises(TypeError):
         soma_cumulativa(["a", "b", "c"])  # Lista com strings
-if __name__ == "__main__":
-    main()
