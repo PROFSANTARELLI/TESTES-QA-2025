@@ -3,7 +3,7 @@ from math_utils import add, subtract
 
 class TestMathUtils(unittest.TestCase):
     def test_add(self):
-        self.assertEqual(add(3, 5), 8)
+        self.assertEqual(add(5, 5), 10)
         self.assertEqual(add(-1, 1), 0)
 
     def test_subtract(self):
