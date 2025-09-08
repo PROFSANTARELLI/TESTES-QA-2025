@@ -1,0 +1,292 @@
+###Exercício 1 — Palíndromo “robusto” (Unicode, acentos, pontuação)
+###Arquivo: ex1_palindromo.py
+###Desafio: incluir números e alfabetos de outros idiomas nos testes.
+
+import unicodedata
+
+def is_palindrome(text: str) -> bool:
+    """
+    Verifica se 'text' é palíndromo desconsiderando:
+    - diferenças de maiúsculas/minúsculas (casefold)
+    - acentos (normalização Unicode)
+    - espaços e pontuação (mantém apenas caracteres alfanuméricos)
+    Levanta ValueError se text for None.
+    """
+    if text is None:
+        raise ValueError("text não pode ser None")
+
+    # Normaliza (NFD) e remove diacríticos (acentos)
+    normalized = unicodedata.normalize("NFD", text)
+    sem_acentos = "".join(ch for ch in normalized if unicodedata.category(ch) != "Mn")
+    # Mantém apenas alfanuméricos e aplica casefold
+    filtrado = "".join(ch for ch in sem_acentos if ch.isalnum()).casefold()
+    return filtrado == filtrado[::-1]
+
+Arquivo: test_ex1_palindromo.py
+import unittest
+from ex1_palindromo import is_palindrome
+
+class TestPalindromo(unittest.TestCase):
+    def test_frases_portugues(self):
+        self.assertTrue(is_palindrome("A grama é amarga"))
+        self.assertTrue(is_palindrome("Socorram-me, subi no ônibus em Marrocos"))
+        self.assertTrue(is_palindrome("Anotaram a data da maratona"))
+
+    def test_nao_palindromo(self):
+        self.assertFalse(is_palindrome("Árvore"))
+        self.assertFalse(is_palindrome("Python"))
+
+    def test_edge_cases(self):
+        self.assertTrue(is_palindrome(""))              # string vazia é palíndromo
+        self.assertTrue(is_palindrome("!!!..."))        # só pontuação
+        with self.assertRaises(ValueError):
+            is_palindrome(None)
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+
+
+###Exercício 2 — Validador de CPF (com limpeza e dígitos verificadores)
+###Arquivo: ex2_cpf.py
+###Desafio: criar função que formate o CPF válido (###.###.###-##) e testar.
+
+import re
+
+def validar_cpf(cpf: str) -> bool:
+    """
+    Valida CPF brasileiro:
+    - extrai apenas dígitos
+    - rejeita CPFs com todos os dígitos iguais
+    - confere os dois dígitos verificadores
+    Retorna True/False.
+    """
+    if not isinstance(cpf, str):
+        return False
+
+    digitos = re.findall(r"\d", cpf)
+    if len(digitos) != 11:
+        return False
+
+    nums = list(map(int, digitos))
+
+    # Rejeita sequências do tipo 111.111.111-11
+    if len(set(nums)) == 1:
+        return False
+
+    # 1º DV
+    soma1 = sum(a * b for a, b in zip(nums[:9], range(10, 1, -1)))
+    d1 = (soma1 * 10) % 11
+    d1 = 0 if d1 == 10 else d1
+    if d1 != nums[9]:
+        return False
+
+    # 2º DV
+    soma2 = sum(a * b for a, b in zip(nums[:10], range(11, 1, -1)))
+    d2 = (soma2 * 10) % 11
+    d2 = 0 if d2 == 10 else d2
+    return d2 == nums[10]
+
+Arquivo: test_ex2_cpf.py
+import unittest
+from ex2_cpf import validar_cpf
+
+class TestCPF(unittest.TestCase):
+    def test_validos(self):
+        self.assertTrue(validar_cpf("529.982.247-25"))
+        self.assertTrue(validar_cpf("16899535009"))
+
+    def test_invalidos(self):
+        self.assertFalse(validar_cpf("111.111.111-11"))
+        self.assertFalse(validar_cpf("123.456.789-10"))
+        self.assertFalse(validar_cpf("52998224724"))  # DV incorreto
+
+    def test_entradas_inesperadas(self):
+        self.assertFalse(validar_cpf(123))        # tipo errado
+        self.assertFalse(validar_cpf("abc"))
+        self.assertFalse(validar_cpf(""))
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+###Exercício 3 — Conversor de Números Romanos (ida e volta, com regras estritas)
+###Arquivo: ex3_romanos.py
+###Desafio: gerar casos de teste adicionais aleatórios e verificar a propriedade roman_to_int(int_to_roman(n)) == n.
+
+ROM_MAP = [
+    (1000, "M"),
+    (900,  "CM"),
+    (500,  "D"),
+    (400,  "CD"),
+    (100,  "C"),
+    (90,   "XC"),
+    (50,   "L"),
+    (40,   "XL"),
+    (10,   "X"),
+    (9,    "IX"),
+    (5,    "V"),
+    (4,    "IV"),
+    (1,    "I"),
+]
+
+ROM_VAL = {"I":1, "V":5, "X":10, "L":50, "C":100, "D":500, "M":1000}
+
+def int_to_roman(n: int) -> str:
+    if not (1 <= n <= 3999):
+        raise ValueError("n deve estar entre 1 e 3999")
+    res = []
+    x = n
+    for val, sym in ROM_MAP:
+        q, x = divmod(x, val)
+        res.append(sym * q)
+    return "".join(res)
+
+def roman_to_int(s: str) -> int:
+    if not s or not isinstance(s, str):
+        raise ValueError("Romano inválido")
+    s = s.upper()
+    if any(ch not in ROM_VAL for ch in s):
+        raise ValueError("Romano inválido")
+
+    total, i = 0, 0
+    prev = None
+    repeat_count = 0
+    repeatable = {"I", "X", "C", "M"}
+
+    while i < len(s):
+        ch = s[i]
+        val = ROM_VAL[ch]
+
+        if prev == ch:
+            repeat_count += 1
+            if ch not in repeatable or repeat_count >= 3:
+                raise ValueError("Repetição inválida")
+        else:
+            repeat_count = 0
+
+        if i + 1 < len(s):
+            ch2 = s[i + 1]
+            val2 = ROM_VAL[ch2]
+            if val < val2:
+                allowed = {("I","V"),("I","X"),("X","L"),("X","C"),("C","D"),("C","M")}
+                if (ch, ch2) not in allowed:
+                    raise ValueError("Par subtrativo inválido")
+                if repeat_count > 0:
+                    raise ValueError("Subtração após repetição é inválida")
+                total += val2 - val
+                i += 2
+                prev = None
+                continue
+
+        total += val
+        prev = ch
+        i += 1
+
+    # Exige forma canônica mínima
+    if int_to_roman(total) != s:
+        raise ValueError("Representação não canônica")
+    return total
+
+Arquivo: test_ex3_romanos.py
+import unittest
+from ex3_romanos import int_to_roman, roman_to_int
+
+class TestRomanos(unittest.TestCase):
+    def test_ida_volta(self):
+        casos = [1, 4, 9, 40, 44, 58, 1994, 3999]
+        for n in casos:
+            r = int_to_roman(n)
+            self.assertEqual(roman_to_int(r), n)
+
+    def test_limites(self):
+        with self.assertRaises(ValueError):
+            int_to_roman(0)
+        with self.assertRaises(ValueError):
+            int_to_roman(4000)
+
+    def test_invalidos(self):
+        for s in ["IC", "IL", "XM", "VX", "IIII", "VV", "MCMC", "IIV", ""]:
+            with self.assertRaises(ValueError):
+                roman_to_int(s)
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+
+
+###Exercício 4 — Multiplicação de Matrizes (retangularidade, identidade, associatividade)
+###Arquivo: ex4_matrizes.py
+###Desafio: acrescente testes de distribuitividade sobre soma de matrizes (implemente add_matrices e teste A*(B+C) == A*B + A*C).
+
+def multiply_matrices(A, B):
+    """
+    Multiplica A (m x n) por B (n x p).
+    Verifica:
+    - A e B não vazias
+    - retangularidade
+    - compatibilidade de dimensões
+    """
+    if not A or not B or not isinstance(A, list) or not isinstance(B, list):
+        raise ValueError("Matrizes devem ser listas não vazias")
+
+    m = len(A)
+    n = len(A[0])
+    if any(len(row) != n for row in A):
+        raise ValueError("Matriz A não é retangular")
+
+    p = len(B[0])
+    if any(len(row) != p for row in B):
+        raise ValueError("Matriz B não é retangular")
+
+    if len(B) != n:
+        raise ValueError("Dimensões incompatíveis para multiplicação")
+
+    res = [[0 for _ in range(p)] for _ in range(m)]
+    for i in range(m):
+        for j in range(p):
+            res[i][j] = sum(A[i][k] * B[k][j] for k in range(n))
+    return res
+
+def identity(n):
+    return [[1 if i == j else 0 for j in range(n)] for i in range(n)]
+
+Arquivo: test_ex4_matrizes.py
+import unittest
+from ex4_matrizes import multiply_matrices, identity
+
+class TestMatrizes(unittest.TestCase):
+    def test_multiplicacao_basica(self):
+        A = [[1, 2], [3, 4]]
+        B = [[0, 1], [1, 0]]
+        self.assertEqual(multiply_matrices(A, B), [[2, 1], [4, 3]])
+
+    def test_identidade(self):
+        A = [[2, -1], [0, 3]]
+        I = identity(2)
+        self.assertEqual(multiply_matrices(A, I), A)
+        self.assertEqual(multiply_matrices(I, A), A)
+
+    def test_associatividade(self):
+        A = [[1, 2], [3, 4]]
+        B = [[0, 1], [1, 0]]
+        C = [[2, 0], [0, 2]]
+        left = multiply_matrices(multiply_matrices(A, B), C)
+        right = multiply_matrices(A, multiply_matrices(B, C))
+        self.assertEqual(left, right)
+
+    def test_erros(self):
+        with self.assertRaises(ValueError):
+            multiply_matrices([], [[1]])
+        with self.assertRaises(ValueError):
+            multiply_matrices([[1,2],[3]], [[1,2],[3,4]])  # A não retangular
+        with self.assertRaises(ValueError):
+            multiply_matrices([[1,2],[3,4]], [[1,2,3]])    # B não retangular
+        with self.assertRaises(ValueError):
+            multiply_matrices([[1,2,3]], [[1,2],[3,4]])    # dimensões incompatíveis
+
+if __name__ == "__main__":
+    unittest.main()
+
