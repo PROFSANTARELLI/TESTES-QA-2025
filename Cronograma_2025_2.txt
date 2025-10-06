@@ -1,11 +1,11 @@
 SEGUNDAS-FEIRAS:
 25/08 - AULA 02 (Programação / Projetos / Teste Unitários) - Finalizado
 01/09 - Início da AC (Sprint 1 - Testes Unitários) - Finalizado
-
 08/09 - AC (Sprint 2 - Testes Unitários)
 15/09 - AAI (0,5)- Execução de testes unitários em Python
 22/09 - AC (Sprint 3)
 29/09 - AC (Sprint 4)
+
 06/10 - AC (Sprint 5) + Projeto Tech DocumentaçãO
 13/10 - AC (Sprint 6) + Projeto Tech - Testes unitários fase
 20/10 - AC (Sprint 7) + Projeto Tech - Testes de sistemas fase 1
