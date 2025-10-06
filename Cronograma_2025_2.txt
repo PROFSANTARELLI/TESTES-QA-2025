@@ -4,10 +4,10 @@ SEGUNDAS-FEIRAS:
 
 08/09 - AC (Sprint 2 - Testes Unitários)
 15/09 - AAI (0,5)- Execução de testes unitários em Python
-22/09 - AC (Sprint 3) + Projeto Tech Documentação parte 1
-29/09 - AC (Sprint 4) + Projeto Tech Documentação parte 2
-06/10 - AC (Sprint 5) + Projeto Tech - Testes unitários fase 1
-13/10 - AC (Sprint 6) + Projeto Tech - Testes unitários fase 2
+22/09 - AC (Sprint 3)
+29/09 - AC (Sprint 4)
+06/10 - AC (Sprint 5) + Projeto Tech DocumentaçãO
+13/10 - AC (Sprint 6) + Projeto Tech - Testes unitários fase
 20/10 - AC (Sprint 7) + Projeto Tech - Testes de sistemas fase 1
 27/10 - AC (Sprint 8) + Projeto Tech - Testes de sistemas fase 2
 03/11 - Projeto Tech - Testes de sistemas
