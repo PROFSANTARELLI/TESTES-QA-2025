@@ -1,0 +1,199 @@
+TESTE DE SEGURABNÇA - SQL INJECTION
+
+O que é SQL Injection?
+Imagine que seu código precisa conversar com um banco de dados para buscar uma informação. Para isso, ele monta uma pergunta (uma query SQL) como:
+
+"Me traga o usuário com o nome 'ana' e a senha '1234'"
+
+Um ataque de SQL Injection acontece quando um invasor consegue manipular a sua pergunta, inserindo comandos SQL maliciosos nos campos de entrada do sistema (como um formulário de login ou uma barra de busca).
+O problema fundamental ocorre quando o seu programa junta (concatena) o texto do usuário diretamente na pergunta SQL.
+
+Se o invasor, em vez de "ana", digitar algo como ' OR '1'='1, a pergunta que seu código montará será: "Me traga o usuário com o nome '' OR '1'='1' e a senha '... '
+
+A condição '1'='1' é sempre verdadeira. Para o banco de dados, a pergunta se tornou "me traga um usuário cuja nome seja vazio OU onde 1 seja igual a 1", o que o faz retornar o primeiro usuário da tabela, ignorando completamente a senha.
+
+Consequências:
+- Bypass de Autenticação: Entrar em sistemas sem ter usuário e senha.
+- Roubo de Dados: Acessar informações de todos os usuários, clientes, etc.
+- Modificação ou Exclusão de Dados: Alterar ou apagar registros e tabelas inteiras do banco de dados.
+
+A Regra de Ouro: NUNCA confie na entrada do usuário e NUNCA monte queries SQL juntando strings de texto. Use sempre Query Parameters (Prepared Statements).
+
+Exercícios:
+Vamos criar um pequeno banco de dados para nossos testes: setup.py
+
+import sqlite3
+# Conecta ao banco (cria o arquivo se não existir)
+conn = sqlite3.connect('aula.db')
+cursor = conn.cursor()
+
+# Apaga a tabela se ela já existir, para começar do zero
+cursor.execute("DROP TABLE IF EXISTS usuarios")
+
+# Cria a tabela de usuários
+cursor.execute("""
+CREATE TABLE usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL
+);
+""")
+
+# Insere alguns dados de exemplo
+cursor.execute("INSERT INTO usuarios (username, password, role) VALUES (?, ?, ?)", ('admin', 'senha_super_secreta', 'administrator'))
+cursor.execute("INSERT INTO usuarios (username, password, role) VALUES (?, ?, ?)", ('bob', '123456', 'user'))
+
+# Salva as mudanças e fecha a conexão
+conn.commit()
+conn.close()
+
+print("Banco de dados 'aula.db' criado com sucesso!")
+
+Exercício 1: O Ataque de Bypass de Login
+Cenário: Temos uma função de login que verifica se o usuário e a senha existem no banco de dados. O código está vulnerável.
+
+Código Vulnerável:
+
+import sqlite3
+def login_vulneravel(username, password):
+    conn = sqlite3.connect('aula.db')
+    cursor = conn.cursor()
+    
+    # VULNERABILIDADE: Montando a query com f-string (concatenação)
+    query = f"SELECT * FROM usuarios WHERE username = '{username}' AND password = '{password}'"
+    print(f"Executando query: {query}") # Apenas para fins didáticos
+    
+    cursor.execute(query)
+    user = cursor.fetchone()
+    conn.close()
+    
+    if user:
+        print(f"\n[+] Login bem-sucedido! Bem-vindo, {user[1]}. Sua função é: {user[3]}")
+    else:
+        print("\n[-] Falha no login. Usuário ou senha incorretos.")
+
+# Tentativa de login normal (funciona)
+print("--- Teste de Login Válido ---")
+login_vulneravel('bob', '123456')
+
+# O Ataque!
+print("\n--- Tentativa de Ataque de SQL Injection ---")
+username_malicioso = "' OR '1'='1"
+senha_qualquer = "qualquercoisa"
+login_vulneravel(username_malicioso, senha_qualquer)
+
+Análise da Resposta:
+Ao rodar o código acima, o ataque funciona! Por quê?
+A query final que foi executada no banco de dados foi:
+SELECT * FROM usuarios WHERE username = '' OR '1'='1' AND password = 'qualquercoisa'
+A condição WHERE se tornou verdadeira para o primeiro usuário (admin) porque a parte '1'='1' faz com que a cláusula inteira seja sempre verdade, permitindo o login sem saber a senha.
+
+A Correção:
+A forma correta é usar placeholders (?). O driver do banco de dados irá tratar a entrada do usuário como dados puros, e não como parte do comando SQL, prevenindo o ataque.
+
+import sqlite3
+def login_corrigido(username, password):
+    conn = sqlite3.connect('aula.db')
+    cursor = conn.cursor()
+    
+    # CORREÇÃO: Usando placeholders(?) para os parâmetros
+    query = "SELECT * FROM usuarios WHERE username = ? AND password = ?"
+    
+    # Os valores são passados como uma tupla no segundo argumento do execute()
+    cursor.execute(query, (username, password))
+    user = cursor.fetchone()
+    conn.close()
+    
+    if user:
+        print(f"\n[+] Login bem-sucedido! Bem-vindo, {user[1]}.")
+    else:
+        print("\n[-] Falha no login. Usuário ou senha incorretos.")
+
+# Tentando o ataque na função corrigida
+print("\n--- Tentando o Ataque na Função Segura ---")
+username_malicioso = "' OR '1'='1"
+senha_qualquer = "qualquercoisa"
+login_corrigido(username_malicioso, senha_qualquer)
+Resultado: A tentativa de ataque falha, como esperado.
+
+
+
+Exercício 2: Buscando Dados de Usuário de Forma Insegura (0,15)
+Cenário: Temos uma função que busca os dados de um usuário pelo seu ID. O código está vulnerável e os alunos precisam corrigi-lo.
+Seu Desafio: Identifique a vulnerabilidade no código abaixo e reescreva a função de forma segura. O que um invasor poderia digitar em user_id para ver os dados de todos os usuários?
+
+Código ruim:
+import sqlite3
+def buscar_usuario_vulneravel(user_id):
+    conn = sqlite3.connect('aula.db')
+    cursor = conn.cursor()
+    
+    # VULNERABILIDADE AQUI!
+    query = f"SELECT id, username, role FROM usuarios WHERE id = {user_id}"
+    print(f"Executando query: {query}")
+    
+    cursor.execute(query)
+    resultados = cursor.fetchall() # fetchall() para ver o estrago
+    conn.close()
+    
+    if resultados:
+        print("\n[+] Usuários encontrados:")
+        for user in resultados:
+            print(f"  ID: {user[0]}, Nome: {user[1]}, Função: {user[2]}")
+    else:
+        print("\n[-] Nenhum usuário encontrado.")
+
+# Teste normal
+print("--- Buscando usuário com ID 1 ---")
+buscar_usuario_vulneravel('1')
+
+# Teste do ataque
+# Dica: o que acontece se o user_id for "1 OR 1=1"?
+print("\n--- Tentativa de Ataque ---")
+id_malicioso = "1 OR 1=1" 
+
+# Análise do Problema:
+O user_id malicioso 1 OR 1=1 transforma a query em:
+SELECT id, username, role FROM usuarios WHERE id = 1 OR 1=1
+A condição OR 1=1 faz a cláusula WHERE ser verdadeira para todas as linhas da tabela, vazando os dados de todos os usuários.
+
+Escreva a solução do Exercício 2:
+
+
+
+
+Exercício 3: Inserindo Dados com Risco (0,15)
+Cenário: Uma função de cadastro permite que um novo usuário seja inserido no banco. A vulnerabilidade aqui é mais sutil.
+Seu Desafio: O código abaixo quebra se um usuário tentar se cadastrar com um nome que contém uma aspa simples (ex: O'Brian). Corrija o código para que ele funcione corretamente e, ao mesmo tempo, se proteja contra SQL Injection.
+
+Código ruim:
+import sqlite3
+def cadastrar_usuario_vulneravel(username, password, role):
+    conn = sqlite3.connect('aula.db')
+    cursor = conn.cursor()
+    
+    # VULNERABILIDADE AQUI!
+    query = f"INSERT INTO usuarios (username, password, role) VALUES ('{username}', '{password}', '{role}')"
+    print(f"Executando query: {query}")
+    
+    try:
+        cursor.execute(query)
+        conn.commit()
+        print(f"\n[+] Usuário '{username}' cadastrado com sucesso!")
+    except Exception as e:
+        print(f"\n[-] Erro ao cadastrar usuário: {e}")
+    finally:
+        conn.close()
+
+# Teste com um nome de usuário que quebra o código
+print("--- Tentando cadastrar usuário com aspas simples ---")
+cadastrar_usuario_vulneravel("O'Brian", "senha123", "user")
+
+Análise do Problema:
+A aspa simples no nome O'Brian quebra a sintaxe do SQL. A query fica:
+INSERT ... VALUES ('O'Brian', ...)
+Note as três aspas seguidas. O banco de dados não entende essa instrução e gera um erro de sintaxe. Um invasor poderia usar isso para injetar comandos SQL no lugar de um simples nome.
+
+
+Solução do Exercício 3:
