@@ -1,0 +1,124 @@
+A Expo Tech é um evento acadêmico da UniFECAF onde alunos do curso de Análise e Desenvolvimento de Sistemas apresentam projetos que integram teoria e prática, focando em soluções inovadoras para aplicações móveis e desenvolvimento de jogos. O objetivo é estimular a criatividade, o trabalho em equipe e a aplicação de tecnologias emergentes. 
+
+Os alunos podem escolher entre duas áreas: 
+
+Mobile Development. 
+
+Game Development. 
+
+ 
+Implementação: 
+
+Aplicativos móveis: Desenvolvidos em React Native. 
+
+Jogos: Desenvolvidos em Godot 
+
+ 
+
+CRONOGRAMA DE Q.A. 
+
+Apresentação do cronograma e explicações detalhadas (29/09) 
+
+ˆ·Semana 1 (06/10) – Definição e construção de Cenários e Roteiros de Testes (Vale 0,25 pt) 
+
+Ações: 
+
+✔ Definir documental de no mínimo 12 cenários de teste: 
+
+5 cenários de testes unitários 
+
+4 cenários de teste de usabilidade (funcional). 
+
+1 cenário de performance . 
+
+✔ Escrever e detalhar os Roteiros e Cenários de testes. 
+
+Entregável:  
+
+Documento de Cenário de Testes revisado e documento de roteiro de testes criado para cada um dos cenários de testes. 
+
+ 
+
+Semana 2 (13/10) – Execução Testes Unitários (0,25 pt) 
+Ações: 
+
+✔ Implementar scripts testes unitários 
+
+✔ Executar 5 testes unitários 
+
+✔ Relatório de bugs: Registrar falhas em planilha compartilhada. 
+
+✔ Executar testes e analisar resultado. 
+
+Entregável: 
+Código e scripts dos testes unitários já terminados (GitHub). 
+
+
+Semana 3 (27/10) - Teste Usabilidade FASE 1 (0,5pt) 
+
+Ações: 
+
+✔ Realizar testes: 
+
+Teste de usabilidade com gravação de tela. Total de 10 funcionalidades. 
+
+✔ Gerar relatório consolidado: 
+
+Emitir relatório simples em PDF com os resultados de usabilidade, com as 10 funcionalidades testadas visualmente. 
+
+Entregável:  
+
+Vídeo de gravações de usabilidade em arquivo MP4 
+
+Relatório de testes com totais de funcionalidades validadas e com erros 
+
+Obs: validar com o professor e subir no Github 
+
+
+Semana 4 (03/11) ) - Teste Usabilidade FASE 2 (0,5pt) 
+Ações: 
+✔ Realizar testes: 
+Teste de usabilidade com gravação de tela todas as funcionalidades desenvolvidas. 
+Testes de Performance avaliando recursos de máquinas 
+
+✔ Gerar relatório consolidado: 
+
+Emitir relatório simples em PDF com os resultados de usabilidade. 
+
+Entregável:  
+
+Vídeo de gravações de usabilidade em arquivo MP4 
+
+Relatório de testes com totais de funcionalidades validadas e com erros 
+ 
+Obs: validar com o professor e subir no Github 
+
+ 
+
+Semana 5 (10/11) - Apresentação de testes final (Vale 0,5 pt) 
+Ações: 
+✔ Relatório final resumindo: 
+Resultados gerais. 
+Problemas encontrados. 
+Melhorias aplicadas. 
+ 
+Dados de performance/usabilidade. 
+✔ Simulação de apresentação completa. 
+
+Entregável:  
+Demonstração da execução dos testes 
+Documentos no GitHub 
+
+
+Apresentação Final (29/11) -  Testes completos em produção (1,0 pt) 
+✔ Demonstração: 
+Mostrar documentos de testes 
+Mostrar execução de testes unitários 
+Mostrar gravações de usabilidade 
+Exibir relatórios de performance 
+
+✔ Avaliação: 
+Qualidade dos cenários. 
+Resultados práticos. 
+Sucesso nos testes 
+
