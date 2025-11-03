@@ -1,0 +1,274 @@
+ATAQUES XSS
+
+Cross-Site Scripting, ou XSS, é um dos ataques mais frequentes em aplicações web.
+
+XSS é uma vulnerabilidade que permite a um invasor injetar scripts maliciosos (geralmente JavaScript) em uma página web, que serão executados no navegador de outros usuários.
+
+A falha central ocorre quando a aplicação web pega uma entrada do usuário e a exibe na tela sem antes validá-la e neutralizá-la (processo chamado de escaping).
+
+Principais Tipos de XSS:
+
+1 - XSS Refletido (Reflected XSS): O script malicioso é injetado através de uma URL ou formulário, e o resultado é "refletido" de volta para o usuário que fez a requisição.
+É comum em páginas de busca, onde o termo buscado é exibido na tela. O ataque precisa ser enviado à vítima (ex: através de um link de phishing).
+
+2 - XSS Armazenado (Stored XSS): É o mais perigoso. O script malicioso é salvo permanentemente no banco de dados do site (ex: em um comentário de blog, num perfil de usuário).
+Todos os usuários que visitarem a página contaminada executarão o script automaticamente.
+
+Consequências:
+- Roubo de Sessão: O script pode roubar os cookies de sessão da vítima, permitindo que o invasor se passe por ela.
+- Phishing: Exibir formulários de login falsos dentro de uma página legítima para roubar credenciais.
+- Defacement: Alterar o conteúdo visual do site.
+- Redirecionamento Malicioso: Enviar o usuário para sites fraudulentos.
+
+A Regra de Ouro: NUNCA confie na entrada do usuário e SEMPRE neutralize (escape) qualquer dado antes de exibi-lo em uma página HTML.
+
+
+Exercícios Práticos
+
+1 - Instalem o Flask: pip install Flask
+2 - Salvar todo o código em um único arquivo chamado app.py
+3 - Para rodar o servidor, basta executar no terminal: python app.py
+4 - A aplicação estará disponível no navegador em http://127.0.0.1:5000.
+5 - Crie o ambiente virtual:
+python -m venv venv
+env\Scripts\activate
+pip install flask requests
+
+
+Exercício 1: XSS Refletido em uma Página de Busca
+
+Cenário: Temos uma página de busca que exibe o termo pesquisado de volta para o usuário. O código renderiza o termo de forma insegura.
+
+
+Código Vulnerável (app.py):
+
+from flask import Flask, request, render_template_string
+
+app = Flask(__name__)
+
+# Rota da página de busca
+@app.route('/busca')
+def pagina_busca():
+    termo_buscado = request.args.get('termo', '') # Pega o 'termo' da URL, ex: /busca?termo=celular
+
+    # VULNERABILIDADE: O termo é inserido diretamente no HTML com uma f-string
+    # Isso impede que o sistema de templates do Flask (Jinja2) faça o escaping automático.
+    html_vulneravel = f"""
+        <h1>Busca de Produtos</h1>
+        <form action="/busca" method="get">
+            <input type="text" name="termo" size="50">
+            <input type="submit" value="Buscar">
+        </form>
+        <hr>
+        <h2>Resultado para: {termo_buscado}</h2>
+    """
+    return html_vulneravel
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+Como Realizar o Ataque:
+1 - python app.py
+2 - Acesse http://127.0.0.1:5000/busca no navegador.
+3 - Na caixa de busca, em vez de um texto normal, insira o seguinte payload de JavaScript e clique em "Buscar": <script>alert('Você foi hackeado! (XSS Refletido)');</script>
+
+Observe a caixa de alerta que aparece na tela. O script foi executado!
+O código pegou o texto do usuário, que continha tags <script>, e o inseriu diretamente no HTML da página. O navegador, ao ler o HTML, encontrou as tags e executou o JavaScript contido nelas.
+
+A Correção (Sua tarefa é reescrever a função pagina_busca):
+Use o sistema de templates do Flask de forma correta, separando o HTML da lógica. O Jinja2 faz o escaping automaticamente por padrão, prevenindo o XSS.
+
+
+from flask import Flask, request, render_template_string
+
+app = Flask(__name__)
+
+@app.route('/busca')
+def pagina_busca():
+    termo_buscado = request.args.get('termo', '')
+
+    # CORREÇÃO: Usando o sistema de templates do Jinja2 corretamente.
+    # A variável `termo` será escapada automaticamente.
+    template_seguro = """
+        <h1>Busca de Produtos</h1>
+        <form action="/busca" method="get">
+            <input type="text" name="termo" size="50">
+            <input type="submit" value="Buscar">
+        </form>
+        <hr>
+        <h2>Resultado para: {{ termo }}</h2>
+    """
+    # A variável é passada como um contexto para o template
+    return render_template_string(template_seguro, termo=termo_buscado)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+Resultado: Se você tentar o mesmo ataque na versão corrigida, a página irá exibir o texto <script>alert(...)</script> literalmente na tela, sem executar o alerta. O ataque foi neutralizado.
+
+
+Exercício 2: XSS Armazenado em um Livro de Visitas
+
+Cenário: Temos um livro de visitas onde usuários podem deixar mensagens. As mensagens são salvas e exibidas para todos, mas de forma insegura.
+
+Seu Desafio: Identifique a vulnerabilidade e corrija o código.
+
+Código Vulnerável (adicione estas rotas ao seu app.py):
+
+# ... (mantenha o código do Flask de antes) ...
+
+# "Banco de dados" em memória para simplificar
+comentarios = []
+
+# Rota do livro de visitas
+@app.route('/comentarios', methods=['GET', 'POST'])
+def livro_de_visitas():
+    # Se o método for POST, salva o novo comentário
+    if request.method == 'POST':
+        novo_comentario = request.form.get('comentario')
+        if novo_comentario:
+            comentarios.append(novo_comentario)
+
+    # Monta a lista de comentários para exibição
+    # VULNERABILIDADE AQUI: cada comentário é inserido diretamente no HTML
+    lista_html = ""
+    for c in comentarios:
+        lista_html += f"<li>{c}</li>" # Concatenação insegura
+
+    # Template vulnerável
+    html_vulneravel = f"""
+        <h1>Livro de Visitas</h1>
+        <form action="/comentarios" method="post">
+            <textarea name="comentario" rows="4" cols="50"></textarea><br>
+            <input type="submit" value="Postar Comentário">
+        </form>
+        <hr>
+        <h2>Comentários:</h2>
+        <ul>
+            {lista_html}
+        </ul>
+    """
+    return html_vulneravel
+
+Como Realizar o Ataque:
+1 - Rode o app.py e acesse http://127.0.0.1:5000/comentarios.
+2 - Na caixa de texto, poste o seguinte payload:
+<img src=x onerror="alert('XSS Armazenado! Todos que visitarem esta página verão este alerta.')">
+
+Agora, atualize a página ou feche e abra novamente. O alerta continuará aparecendo, pois o script está salvo no "banco de dados" e é executado toda vez que a página é carregada.
+
+Análise do Problema:
+O código percorre a lista de comentários e os concatena diretamente em uma string HTML.
+Isso é exatamente o que não se deve fazer. 
+Quando o navegador renderiza <li><img src=x onerror="..."></li>, ele tenta carregar uma imagem inválida, o que dispara o evento onerror, executando o JavaScript.
+
+Solução do Exercício 2:
+Novamente, a solução é delegar a renderização para o motor de templates Jinja2, que fará o escaping.
+
+# ... (código do Flask) ...
+
+comentarios = []
+
+@app.route('/comentarios', methods=['GET', 'POST'])
+def livro_de_visitas():
+    if request.method == 'POST':
+        novo_comentario = request.form.get('comentario')
+        if novo_comentario:
+            comentarios.append(novo_comentario)
+
+    # CORREÇÃO: Usando o sistema de templates para renderizar a lista
+    template_seguro = """
+        <h1>Livro de Visitas</h1>
+        <form action="/comentarios" method="post">
+            <textarea name="comentario" rows="4" cols="50"></textarea><br>
+            <input type="submit" value="Postar Comentário">
+        </form>
+        <hr>
+        <h2>Comentários:</h2>
+        <ul>
+            {# O loop for do Jinja2 irá percorrer a lista #}
+            {% for c in lista_de_comentarios %}
+                {# Cada item 'c' será escapado automaticamente antes de ser exibido #}
+                <li>{{ c }}</li>
+            {% endfor %}
+        </ul>
+    """
+    # Passamos a lista inteira para o template
+    return render_template_string(template_seguro, lista_de_comentarios=comentarios)
+
+Exercício 3: XSS em Atributos HTML (O Link Perigoso)
+Cenário: Temos uma página de perfil de usuário. O sistema exibe o nome do usuário e permite que ele configure um link para seu site pessoal.
+O desenvolvedor tomou cuidado ao exibir o nome do usuário, mas foi descuidado ao montar o link para o site.
+
+Seu Desafio: O código abaixo é vulnerável a um ataque de XSS que acontece dentro de um atributo HTML (o href da tag <a>).
+Seu desafio é identificar a falha e corrigir o código para que a URL do site seja renderizada de forma segura, impedindo que um invasor "escape" do atributo e injete JavaScript.
+
+Código Vulnerável (adicione esta rota e a variável ao seu app.py):
+
+# ... (mantenha o código do Flask de antes) ...
+
+# "Banco de dados" em memória para o perfil do usuário
+user_profile = {
+    "username": "Carlos",
+    "website_url": "https://meu-site-seguro.com"
+}
+
+# Rota do perfil do usuário
+@app.route('/perfil')
+def pagina_perfil():
+    username = user_profile['username']
+    website = user_profile['website_url']
+    
+    # O desenvolvedor montou o link manualmente no Python
+    # VULNERABILIDADE AQUI!
+    link_html = f'<a href="{website}">Visite meu site!</a>'
+    
+    # Ele acha que está seguro porque está usando Jinja2 para o username
+    # mas está injetando a string `link_html` já pronta e vulnerável.
+    template = f"""
+        <h1>Perfil de: {{ username }}</h1>
+        <p>Olá! Bem-vindo ao meu perfil.</p>
+        <p>Link: {link_html}</p>
+    """
+    
+    return render_template_string(template, username=username)
+
+Como Realizar o Ataque
+
+1 - Primeiro, rode o app.py e acesse http://127.0.0.1:5000/perfil. Você verá o perfil normal do "Carlos" com um link seguro.
+2 - Agora, simule que um invasor conseguiu alterar a URL do seu site no banco de dados. Modifique a variável user_profile no seu código para o seguinte payload malicioso:
+
+# Altere a variável user_profile para isto:
+user_profile = {
+    "username": "Invasor",
+    "website_url": '" onmouseover="alert(\'XSS no atributo! O script executou quando você passou o mouse aqui!\')" style="color:red;'
+}
+
+
+3 - Salve o arquivo app.py (o servidor Flask irá reiniciar automaticamente).
+4 - Atualize a página http://127.0.0.1:5000/perfil no seu navegador.
+5 - Aparentemente, o link está ali. Agora, passe o mouse por cima do link "Visite meu site!".
+6 - Observe o alerta de JavaScript que aparece. O ataque foi um sucesso!
+
+Análise do Problema:
+O payload malicioso foi projetado para "escapar" do atributo href. Vamos ver como o HTML final ficou no navegador:
+<a href="" onmouseover="alert('XSS no atributo!')" style="color:red;">Visite meu site!</a>
+
+O que aconteceu?
+1 - O href=" inicial foi fechado pela primeira aspa " do payload.
+2 - O invasor então inseriu um novo atributo: onmouseover="...". Este atributo executa JavaScript sempre que o mouse passa por cima do elemento.
+3 - O style="color:red;" foi adicionado apenas para tornar o ataque mais visível.
+4 - O código montou essa string perigosa no Python e a injetou diretamente no template.
+
+Agora faça a Solução do Exercício 3:
+A regra de ouro continua a mesma: nunca monte HTML no backend. Passe os dados brutos para o motor de templates e deixe ele fazer o trabalho.
+
+
+Resultado:
+Após a correção, se você recarregar a página e inspecionar o código-fonte do link, verá algo assim:
+
+<a href="&quot; onmouseover=&quot;alert(&#39;XSS no atributo!&#39;)&quot; style=&quot;color:red;">Visite meu site!</a>
+
+
