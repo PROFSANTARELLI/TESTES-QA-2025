@@ -2,8 +2,7 @@ ATAQUES XSS
 
 Cross-Site Scripting, ou XSS, é um dos ataques mais frequentes em aplicações web.
 
-XSS é uma vulnerabilidade que permite a um invasor injetar scripts maliciosos (geralmente JavaScript) em uma página web,
-que serão executados no navegador de outros usuários.
+XSS é uma vulnerabilidade que permite a um invasor injetar scripts maliciosos (geralmente JavaScript) em uma página web.
 
 A falha central ocorre quando a aplicação web pega uma entrada do usuário e a exibe na tela sem antes validá-la e neutralizá-la
 (processo chamado de escaping).
