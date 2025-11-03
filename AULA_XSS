@@ -13,7 +13,7 @@ Principais Tipos de XSS:
 1 - XSS Refletido (Reflected XSS): O script malicioso é injetado através de uma URL ou formulário, e o resultado é "refletido" de volta para o usuário que fez a requisição.
 É comum em páginas de busca, onde o termo buscado é exibido na tela. O ataque precisa ser enviado à vítima (ex: através de um link de phishing).
 
-2 - XSS Armazenado (Stored XSS): É o mais perigoso. O script malicioso é salvo permanentemente no banco de dados do site (ex: em um comentário de blog, num perfil de usuário).
+2 - XSS Armazenado (Stored XSS): É o mais perigoso. O script malicioso é salvo permanentemente no banco de dados do site (ex:um comentário de blog, num perfil de usuário).
 Todos os usuários que visitarem a página contaminada executarão o script automaticamente.
 
 Consequências:
